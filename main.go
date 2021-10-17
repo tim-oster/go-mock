@@ -3,16 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go/parser"
+	"go/token"
 	"log"
 	"os"
 	"strings"
-
-	"golang.org/x/tools/go/packages"
 )
 
 const (
 	binaryName    = "go-mock"
-	binaryVersion = "v0.1.0"
+	binaryVersion = "v0.1.1"
 )
 
 var (
@@ -52,7 +52,8 @@ func main() {
 	}
 
 	var g Generator
-	g.parsePackage(targetInterfaces)
+	filename := os.Getenv("GOFILE")
+	g.parseFile(filename, targetInterfaces)
 	g.generateFiles()
 }
 
@@ -60,22 +61,21 @@ type Generator struct {
 	files []File
 }
 
-func (g *Generator) parsePackage(targets map[string]string) {
-	cfg := &packages.Config{Mode: packages.NeedSyntax | packages.NeedTypes | packages.NeedFiles | packages.NeedImports}
-	pkgs, err := packages.Load(cfg, ".")
+func (g *Generator) parseFile(filename string, targets map[string]string) {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, filename, nil, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
-	packages.PrintErrors(pkgs)
-	for _, pkg := range pkgs {
-		files := parseFiles(pkg, targets)
-		g.files = append(g.files, files...)
-	}
+	files := parseFiles(f, filename, targets)
+	g.files = append(g.files, files...)
 }
 
 func (g *Generator) generateFiles() {
+	wd, _ := os.Getwd()
 	for _, f := range g.files {
-		log.Printf("generating file: %s\n", f.filename)
+		line := os.Getenv("GOLINE")
+		log.Printf("generating file: %s/%s:L%s\n", wd, f.filename, line)
 		f.generate()
 	}
 }
