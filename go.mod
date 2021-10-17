@@ -1,4 +1,4 @@
-module go-mock
+module github.com/tim-oster/go-mock
 
 go 1.16
 
