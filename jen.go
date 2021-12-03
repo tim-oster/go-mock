@@ -26,8 +26,9 @@ func (rename ParamRenamer) rename(index int, p *Param) {
 }
 
 type Param struct {
-	Name string
-	Type jen.Code
+	Name       string
+	Type       jen.Code
+	IsVariadic bool
 }
 
 type Params []Param
@@ -41,11 +42,15 @@ func (params Params) ToSignatureParams(renamer ParamRenamer) []jen.Code {
 	return out
 }
 
-func (params Params) ToCallParams(renamer ParamRenamer) []jen.Code {
+func (params Params) ToCallParams(renamer ParamRenamer, useVariadic bool) []jen.Code {
 	out := make([]jen.Code, 0, len(params))
 	for i, param := range params {
 		renamer.rename(i, &param)
-		out = append(out, jen.Id(param.Name))
+		t := jen.Id(param.Name)
+		if param.IsVariadic && useVariadic {
+			t = t.Add(jen.Op("..."))
+		}
+		out = append(out, t)
 	}
 	return out
 }
@@ -57,12 +62,13 @@ func paramsFromFieldList(fl *ast.FieldList, imports importMap) Params {
 	codes := make(Params, 0, fl.NumFields())
 	for _, l := range fl.List {
 		typ := exprToJen(l.Type, imports)
+		_, isVariadic := l.Type.(*ast.Ellipsis)
 		if len(l.Names) == 0 {
-			codes = append(codes, Param{Type: typ})
+			codes = append(codes, Param{Type: typ, IsVariadic: isVariadic})
 			continue
 		}
 		for _, n := range l.Names {
-			codes = append(codes, Param{Name: n.Name, Type: typ})
+			codes = append(codes, Param{Name: n.Name, Type: typ, IsVariadic: isVariadic})
 		}
 	}
 	return codes

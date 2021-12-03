@@ -197,7 +197,7 @@ func (m *Method) generateMockImplementation(g *jen.File) {
 		Params(m.params.ToSignatureParams(RenamePostfix)...).
 		Params(m.results.ToSignatureParams(nil)...).
 		BlockFunc(func(g *jen.Group) {
-			g.Id("args").Op(":=").Add(mockReceiver).Dot("Called").Call(m.mockedInput.ToCallParams(RenamePostfix)...)
+			g.Id("args").Op(":=").Add(mockReceiver).Dot("Called").Call(m.mockedInput.ToCallParams(RenamePostfix, false)...)
 
 			g.If(jen.Len(jen.Id("args")).Op(">").Lit(0)).BlockFunc(func(g *jen.Group) {
 				g.If(
@@ -205,7 +205,7 @@ func (m *Method) generateMockImplementation(g *jen.File) {
 						Id("args").Dot("Get").Call(jen.Lit(0)).Op(".").Params(jen.Id(m.returnFuncName())),
 					jen.Id("ok"),
 				).BlockFunc(func(g *jen.Group) {
-					invocation := jen.Id("t").Params(m.params.ToCallParams(RenamePostfix)...)
+					invocation := jen.Id("t").Params(m.params.ToCallParams(RenamePostfix, true)...)
 					if len(m.results) > 0 {
 						g.Return(invocation)
 					} else {
@@ -305,7 +305,7 @@ func (m *Method) generateOnMethods(g *jen.File) {
 	genFunc(
 		"On_"+m.name,
 		m.mockedInput.ToSignatureParams(RenamePostfix),
-		m.mockedInput.ToCallParams(RenamePostfix),
+		m.mockedInput.ToCallParams(RenamePostfix, false),
 	)
 
 	// mockStruct.On_xxx_Any
@@ -327,7 +327,7 @@ func (m *Method) generateOnMethods(g *jen.File) {
 		genFunc(
 			"On_"+m.name+"_Interface",
 			interfacedParams.ToSignatureParams(RenamePostfix),
-			interfacedParams.ToCallParams(RenamePostfix),
+			interfacedParams.ToCallParams(RenamePostfix, false),
 		)
 	}
 }
@@ -353,7 +353,7 @@ func (m *Method) generateAssertMethods(g *jen.File) {
 		"Assert_"+m.name+"_Called",
 		"AssertCalled",
 		m.mockedInput.ToSignatureParams(RenamePostfix),
-		m.mockedInput.ToCallParams(RenamePostfix),
+		m.mockedInput.ToCallParams(RenamePostfix, false),
 	)
 
 	// Assert_xxx_NumberOfCalls function
@@ -369,6 +369,6 @@ func (m *Method) generateAssertMethods(g *jen.File) {
 		"Assert_"+m.name+"_NotCalled",
 		"AssertNotCalled",
 		m.mockedInput.ToSignatureParams(RenamePostfix),
-		m.mockedInput.ToCallParams(RenamePostfix),
+		m.mockedInput.ToCallParams(RenamePostfix, false),
 	)
 }
