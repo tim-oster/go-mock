@@ -6,6 +6,8 @@ import "context"
 type ComplexTypes interface {
 	Normal(b bool) (int, error)
 	RemoveCtx(ctx context.Context)
+	NamedReturns() (i int, e error)
+	UnnamedParams(context.Context, int)
 	AnonymousInterface(i interface {
 		TestMethod() (bool, error)
 	})
