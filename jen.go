@@ -21,7 +21,11 @@ var (
 
 func (rename ParamRenamer) rename(index int, p *Param) {
 	if rename != nil {
-		p.Name = rename(index, p.Name)
+		if p.Name == "" {
+			p.Name = rename(index, "")
+		} else {
+			p.Name = rename(index, p.Name)
+		}
 	}
 }
 
@@ -60,11 +64,11 @@ func paramsFromFieldList(fl *ast.FieldList, imports importMap) Params {
 		return nil
 	}
 	codes := make(Params, 0, fl.NumFields())
-	for _, l := range fl.List {
+	for i, l := range fl.List {
 		typ := exprToJen(l.Type, imports)
 		_, isVariadic := l.Type.(*ast.Ellipsis)
 		if len(l.Names) == 0 {
-			codes = append(codes, Param{Type: typ, IsVariadic: isVariadic})
+			codes = append(codes, Param{Name: RenameUnnamed(i, ""), Type: typ, IsVariadic: isVariadic})
 			continue
 		}
 		for _, n := range l.Names {
@@ -114,8 +118,8 @@ func exprToJen(e ast.Expr, imports importMap) jen.Code {
 
 	case *ast.FuncType:
 		return jen.Func().
-			Params(paramsFromFieldList(e.Params, imports).ToSignatureParams(nil)...).
-			Params(paramsFromFieldList(e.Results, imports).ToSignatureParams(nil)...)
+			Params(paramsFromFieldList(e.Params, imports).ToSignatureParams(RenameUnnamed)...).
+			Params(paramsFromFieldList(e.Results, imports).ToSignatureParams(RenameUnnamed)...)
 
 	case *ast.InterfaceType:
 		return jen.InterfaceFunc(func(g *jen.Group) {
@@ -125,8 +129,8 @@ func exprToJen(e ast.Expr, imports importMap) jen.Code {
 				}
 				fn := m.Type.(*ast.FuncType)
 				g.Id(m.Names[0].Name).
-					Params(paramsFromFieldList(fn.Params, imports).ToSignatureParams(nil)...).
-					Params(paramsFromFieldList(fn.Results, imports).ToSignatureParams(nil)...)
+					Params(paramsFromFieldList(fn.Params, imports).ToSignatureParams(RenameUnnamed)...).
+					Params(paramsFromFieldList(fn.Results, imports).ToSignatureParams(RenameUnnamed)...)
 			}
 		})
 
