@@ -321,6 +321,58 @@ func (x *MockComplexTypes) Assert_AnonymousStruct_NotCalled(t *testing.T, s_ str
 	return x.AssertNotCalled(t, "AnonymousStruct", s_)
 }
 
+func (x *MockComplexTypes) Any(arg0_ any) any {
+	args := x.Called(arg0_)
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockComplexTypes_Any_ReturnFunc); ok {
+			return t(arg0_)
+		}
+	}
+	var r0 any
+	if v := args.Get(0); v != nil {
+		r0 = v.(any)
+	}
+	return r0
+}
+
+type mockComplexTypes_Any struct {
+	*mock.Call
+}
+
+type mockComplexTypes_Any_ReturnFunc func(any) any
+
+func (c *mockComplexTypes_Any) Return(arg0 any) *mock.Call {
+	return c.Call.Return(arg0)
+}
+
+func (c *mockComplexTypes_Any) ReturnFn(fn mockComplexTypes_Any_ReturnFunc) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockComplexTypes) On_Any(arg0_ any) *mockComplexTypes_Any {
+	return &mockComplexTypes_Any{Call: x.On("Any", arg0_)}
+}
+
+func (x *MockComplexTypes) On_Any_Any() *mockComplexTypes_Any {
+	return &mockComplexTypes_Any{Call: x.On("Any", mock.Anything)}
+}
+
+func (x *MockComplexTypes) On_Any_Interface(arg0_ interface{}) *mockComplexTypes_Any {
+	return &mockComplexTypes_Any{Call: x.On("Any", arg0_)}
+}
+
+func (x *MockComplexTypes) Assert_Any_Called(t *testing.T, arg0_ any) bool {
+	return x.AssertCalled(t, "Any", arg0_)
+}
+
+func (x *MockComplexTypes) Assert_Any_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "Any", expectedCalls)
+}
+
+func (x *MockComplexTypes) Assert_Any_NotCalled(t *testing.T, arg0_ any) bool {
+	return x.AssertNotCalled(t, "Any", arg0_)
+}
+
 func (x *MockComplexTypes) Channels(i_ chan<- int, o_ <-chan int) (chan bool, error) {
 	args := x.Called(i_, o_)
 	if len(args) > 0 {

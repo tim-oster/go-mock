@@ -34,6 +34,7 @@ func main() {
 	flag.Parse()
 
 	patternArg := flag.Arg(0)
+	patternArg = "Generics"
 	if len(patternArg) == 0 {
 		fmt.Fprintf(os.Stderr, "missing pattern argument\n\n")
 		flag.Usage()
@@ -53,6 +54,7 @@ func main() {
 
 	var g Generator
 	filename := os.Getenv("GOFILE")
+	filename = "examples/example.go"
 	g.parseFile(filename, targetInterfaces)
 	g.generateFiles()
 }
