@@ -57,7 +57,7 @@ func (x *MockKeepCtx) On_Normal_Any() *mockKeepCtx_Normal {
 	return &mockKeepCtx_Normal{Call: x.On("Normal", mock.Anything)}
 }
 
-func (x *MockKeepCtx) On_Normal_Interface(b_ interface{}) *mockKeepCtx_Normal {
+func (x *MockKeepCtx) On_Normal_Interface(b_ any) *mockKeepCtx_Normal {
 	return &mockKeepCtx_Normal{Call: x.On("Normal", b_)}
 }
 
@@ -104,7 +104,7 @@ func (x *MockKeepCtx) On_KeepCtx_Any() *mockKeepCtx_KeepCtx {
 	return &mockKeepCtx_KeepCtx{Call: x.On("KeepCtx", mock.Anything)}
 }
 
-func (x *MockKeepCtx) On_KeepCtx_Interface(ctx_ interface{}) *mockKeepCtx_KeepCtx {
+func (x *MockKeepCtx) On_KeepCtx_Interface(ctx_ any) *mockKeepCtx_KeepCtx {
 	return &mockKeepCtx_KeepCtx{Call: x.On("KeepCtx", ctx_)}
 }
 

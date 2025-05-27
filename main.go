@@ -34,7 +34,6 @@ func main() {
 	flag.Parse()
 
 	patternArg := flag.Arg(0)
-	patternArg = "Generics"
 	if len(patternArg) == 0 {
 		fmt.Fprintf(os.Stderr, "missing pattern argument\n\n")
 		flag.Usage()
@@ -42,8 +41,7 @@ func main() {
 	}
 
 	targetInterfaces := map[string]string{}
-	patterns := strings.Split(patternArg, ",")
-	for _, p := range patterns {
+	for p := range strings.SplitSeq(patternArg, ",") {
 		parts := strings.SplitN(p, ":", 2)
 		var rename string
 		if len(parts) == 2 {
@@ -54,7 +52,6 @@ func main() {
 
 	var g Generator
 	filename := os.Getenv("GOFILE")
-	filename = "examples/example.go"
 	g.parseFile(filename, targetInterfaces)
 	g.generateFiles()
 }

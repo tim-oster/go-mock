@@ -57,7 +57,7 @@ func (x *mockUnexported) On_Normal_Any() *mockUnexported_Normal {
 	return &mockUnexported_Normal{Call: x.On("Normal", mock.Anything)}
 }
 
-func (x *mockUnexported) On_Normal_Interface(b_ interface{}) *mockUnexported_Normal {
+func (x *mockUnexported) On_Normal_Interface(b_ any) *mockUnexported_Normal {
 	return &mockUnexported_Normal{Call: x.On("Normal", b_)}
 }
 

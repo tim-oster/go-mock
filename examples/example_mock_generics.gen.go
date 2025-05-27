@@ -7,13 +7,163 @@ package examples
 
 import (
 	mock "github.com/stretchr/testify/mock"
-	"golang.org/x/exp/constraints"
+	constraints "golang.org/x/exp/constraints"
+	"iter"
+	"testing"
 )
 
-func assert_MockGenerics_impl_Generics[T any]() {
-	var _ Generics[T] = (*MockGenerics[T])(nil)
+var _ Generics = (*MockGenerics)(nil)
+
+type MockGenerics[T any, R any, O constraints.Ordered, E ~[]R] struct {
+	mock.Mock
 }
 
-type MockGenerics[T constraints.Integer] struct {
-	mock.Mock
+func (x *MockGenerics[T, R, O, E]) WithGeneric(typed_ T) (T, error) {
+	args := x.Called(typed_)
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockGenerics_WithGeneric_ReturnFunc[T, R, O, E]); ok {
+			return t(typed_)
+		}
+	}
+	var r0 T
+	if v := args.Get(0); v != nil {
+		r0 = v.(T)
+	}
+	var r1 error
+	if v := args.Get(1); v != nil {
+		r1 = v.(error)
+	}
+	return r0, r1
+}
+
+type mockGenerics_WithGeneric[T any, R any, O constraints.Ordered, E ~[]R] struct {
+	*mock.Call
+}
+
+type mockGenerics_WithGeneric_ReturnFunc[T any, R any, O constraints.Ordered, E ~[]R] func(typed T) (T, error)
+
+func (c *mockGenerics_WithGeneric[T, R, O, E]) Return(arg0 T, arg1 error) *mock.Call {
+	return c.Call.Return(arg0, arg1)
+}
+
+func (c *mockGenerics_WithGeneric[T, R, O, E]) ReturnFn(fn mockGenerics_WithGeneric_ReturnFunc[T, R, O, E]) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockGenerics[T, R, O, E]) On_WithGeneric(typed_ T) *mockGenerics_WithGeneric[T, R, O, E] {
+	return &mockGenerics_WithGeneric[T, R, O, E]{Call: x.On("WithGeneric", typed_)}
+}
+
+func (x *MockGenerics[T, R, O, E]) On_WithGeneric_Any() *mockGenerics_WithGeneric[T, R, O, E] {
+	return &mockGenerics_WithGeneric[T, R, O, E]{Call: x.On("WithGeneric", mock.Anything)}
+}
+
+func (x *MockGenerics[T, R, O, E]) On_WithGeneric_Interface(typed_ any) *mockGenerics_WithGeneric[T, R, O, E] {
+	return &mockGenerics_WithGeneric[T, R, O, E]{Call: x.On("WithGeneric", typed_)}
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_WithGeneric_Called(t *testing.T, typed_ T) bool {
+	return x.AssertCalled(t, "WithGeneric", typed_)
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_WithGeneric_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "WithGeneric", expectedCalls)
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_WithGeneric_NotCalled(t *testing.T, typed_ T) bool {
+	return x.AssertNotCalled(t, "WithGeneric", typed_)
+}
+
+func (x *MockGenerics[T, R, O, E]) NestedGeneric(arg0_ iter.Seq[T]) {
+	args := x.Called(arg0_)
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockGenerics_NestedGeneric_ReturnFunc[T, R, O, E]); ok {
+			t(arg0_)
+		}
+	}
+}
+
+type mockGenerics_NestedGeneric[T any, R any, O constraints.Ordered, E ~[]R] struct {
+	*mock.Call
+}
+
+type mockGenerics_NestedGeneric_ReturnFunc[T any, R any, O constraints.Ordered, E ~[]R] func(iter.Seq[T])
+
+func (c *mockGenerics_NestedGeneric[T, R, O, E]) Return() *mock.Call {
+	return c.Call.Return()
+}
+
+func (c *mockGenerics_NestedGeneric[T, R, O, E]) ReturnFn(fn mockGenerics_NestedGeneric_ReturnFunc[T, R, O, E]) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockGenerics[T, R, O, E]) On_NestedGeneric(arg0_ iter.Seq[T]) *mockGenerics_NestedGeneric[T, R, O, E] {
+	return &mockGenerics_NestedGeneric[T, R, O, E]{Call: x.On("NestedGeneric", arg0_)}
+}
+
+func (x *MockGenerics[T, R, O, E]) On_NestedGeneric_Any() *mockGenerics_NestedGeneric[T, R, O, E] {
+	return &mockGenerics_NestedGeneric[T, R, O, E]{Call: x.On("NestedGeneric", mock.Anything)}
+}
+
+func (x *MockGenerics[T, R, O, E]) On_NestedGeneric_Interface(arg0_ any) *mockGenerics_NestedGeneric[T, R, O, E] {
+	return &mockGenerics_NestedGeneric[T, R, O, E]{Call: x.On("NestedGeneric", arg0_)}
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_NestedGeneric_Called(t *testing.T, arg0_ iter.Seq[T]) bool {
+	return x.AssertCalled(t, "NestedGeneric", arg0_)
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_NestedGeneric_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "NestedGeneric", expectedCalls)
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_NestedGeneric_NotCalled(t *testing.T, arg0_ iter.Seq[T]) bool {
+	return x.AssertNotCalled(t, "NestedGeneric", arg0_)
+}
+
+func (x *MockGenerics[T, R, O, E]) WithoutGeneric(i_ int) {
+	args := x.Called(i_)
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockGenerics_WithoutGeneric_ReturnFunc[T, R, O, E]); ok {
+			t(i_)
+		}
+	}
+}
+
+type mockGenerics_WithoutGeneric[T any, R any, O constraints.Ordered, E ~[]R] struct {
+	*mock.Call
+}
+
+type mockGenerics_WithoutGeneric_ReturnFunc[T any, R any, O constraints.Ordered, E ~[]R] func(i int)
+
+func (c *mockGenerics_WithoutGeneric[T, R, O, E]) Return() *mock.Call {
+	return c.Call.Return()
+}
+
+func (c *mockGenerics_WithoutGeneric[T, R, O, E]) ReturnFn(fn mockGenerics_WithoutGeneric_ReturnFunc[T, R, O, E]) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockGenerics[T, R, O, E]) On_WithoutGeneric(i_ int) *mockGenerics_WithoutGeneric[T, R, O, E] {
+	return &mockGenerics_WithoutGeneric[T, R, O, E]{Call: x.On("WithoutGeneric", i_)}
+}
+
+func (x *MockGenerics[T, R, O, E]) On_WithoutGeneric_Any() *mockGenerics_WithoutGeneric[T, R, O, E] {
+	return &mockGenerics_WithoutGeneric[T, R, O, E]{Call: x.On("WithoutGeneric", mock.Anything)}
+}
+
+func (x *MockGenerics[T, R, O, E]) On_WithoutGeneric_Interface(i_ any) *mockGenerics_WithoutGeneric[T, R, O, E] {
+	return &mockGenerics_WithoutGeneric[T, R, O, E]{Call: x.On("WithoutGeneric", i_)}
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_WithoutGeneric_Called(t *testing.T, i_ int) bool {
+	return x.AssertCalled(t, "WithoutGeneric", i_)
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_WithoutGeneric_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "WithoutGeneric", expectedCalls)
+}
+
+func (x *MockGenerics[T, R, O, E]) Assert_WithoutGeneric_NotCalled(t *testing.T, i_ int) bool {
+	return x.AssertNotCalled(t, "WithoutGeneric", i_)
 }

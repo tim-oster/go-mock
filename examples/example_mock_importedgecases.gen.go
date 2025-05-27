@@ -48,7 +48,7 @@ func (x *MockImportEdgeCases) On_PathVsName_Any() *mockImportEdgeCases_PathVsNam
 	return &mockImportEdgeCases_PathVsName{Call: x.On("PathVsName", mock.Anything)}
 }
 
-func (x *MockImportEdgeCases) On_PathVsName_Interface(t_ interface{}) *mockImportEdgeCases_PathVsName {
+func (x *MockImportEdgeCases) On_PathVsName_Interface(t_ any) *mockImportEdgeCases_PathVsName {
 	return &mockImportEdgeCases_PathVsName{Call: x.On("PathVsName", t_)}
 }
 
@@ -95,7 +95,7 @@ func (x *MockImportEdgeCases) On_ImportAlias_Any() *mockImportEdgeCases_ImportAl
 	return &mockImportEdgeCases_ImportAlias{Call: x.On("ImportAlias", mock.Anything)}
 }
 
-func (x *MockImportEdgeCases) On_ImportAlias_Interface(t_ interface{}) *mockImportEdgeCases_ImportAlias {
+func (x *MockImportEdgeCases) On_ImportAlias_Interface(t_ any) *mockImportEdgeCases_ImportAlias {
 	return &mockImportEdgeCases_ImportAlias{Call: x.On("ImportAlias", t_)}
 }
 

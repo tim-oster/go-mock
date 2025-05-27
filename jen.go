@@ -62,6 +62,21 @@ func (params Params) ToCallParams(useVariadic bool, renamers ...ParamRenamer) []
 	return out
 }
 
+func (params Params) ToTypeIds() []jen.Code {
+	out := make([]jen.Code, 0, len(params))
+	for _, param := range params {
+		out = append(out, jen.Id(param.Name))
+	}
+	return out
+}
+
+func OptionalTypes(codes []jen.Code) jen.Code {
+	if len(codes) != 0 {
+		return jen.Types(codes...)
+	}
+	return nil
+}
+
 func paramsFromFieldList(fl *ast.FieldList, imports importMap) Params {
 	if fl == nil {
 		return nil
@@ -162,6 +177,12 @@ func exprToJen(e ast.Expr, imports importMap) jen.Code {
 			x = r
 		}
 		return jen.Qual(x, e.Sel.Name)
+
+	case *ast.UnaryExpr:
+		return jen.Op(e.Op.String()).Add(exprToJen(e.X, imports))
+
+	case *ast.IndexExpr:
+		return jen.Add(exprToJen(e.X, imports)).Index(exprToJen(e.Index, imports))
 
 	default:
 		panic(fmt.Errorf("unsupported ast.Expr: %T", e))

@@ -57,7 +57,7 @@ func (x *MockComplexTypes) On_Normal_Any() *mockComplexTypes_Normal {
 	return &mockComplexTypes_Normal{Call: x.On("Normal", mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_Normal_Interface(b_ interface{}) *mockComplexTypes_Normal {
+func (x *MockComplexTypes) On_Normal_Interface(b_ any) *mockComplexTypes_Normal {
 	return &mockComplexTypes_Normal{Call: x.On("Normal", b_)}
 }
 
@@ -191,7 +191,7 @@ func (x *MockComplexTypes) On_UnnamedParams_Any() *mockComplexTypes_UnnamedParam
 	return &mockComplexTypes_UnnamedParams{Call: x.On("UnnamedParams", mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_UnnamedParams_Interface(arg0_ interface{}) *mockComplexTypes_UnnamedParams {
+func (x *MockComplexTypes) On_UnnamedParams_Interface(arg0_ any) *mockComplexTypes_UnnamedParams {
 	return &mockComplexTypes_UnnamedParams{Call: x.On("UnnamedParams", arg0_)}
 }
 
@@ -244,7 +244,7 @@ func (x *MockComplexTypes) On_AnonymousInterface_Any() *mockComplexTypes_Anonymo
 	return &mockComplexTypes_AnonymousInterface{Call: x.On("AnonymousInterface", mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_AnonymousInterface_Interface(i_ interface{}) *mockComplexTypes_AnonymousInterface {
+func (x *MockComplexTypes) On_AnonymousInterface_Interface(i_ any) *mockComplexTypes_AnonymousInterface {
 	return &mockComplexTypes_AnonymousInterface{Call: x.On("AnonymousInterface", i_)}
 }
 
@@ -301,7 +301,7 @@ func (x *MockComplexTypes) On_AnonymousStruct_Any() *mockComplexTypes_AnonymousS
 	return &mockComplexTypes_AnonymousStruct{Call: x.On("AnonymousStruct", mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_AnonymousStruct_Interface(s_ interface{}) *mockComplexTypes_AnonymousStruct {
+func (x *MockComplexTypes) On_AnonymousStruct_Interface(s_ any) *mockComplexTypes_AnonymousStruct {
 	return &mockComplexTypes_AnonymousStruct{Call: x.On("AnonymousStruct", s_)}
 }
 
@@ -357,7 +357,7 @@ func (x *MockComplexTypes) On_Any_Any() *mockComplexTypes_Any {
 	return &mockComplexTypes_Any{Call: x.On("Any", mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_Any_Interface(arg0_ interface{}) *mockComplexTypes_Any {
+func (x *MockComplexTypes) On_Any_Interface(arg0_ any) *mockComplexTypes_Any {
 	return &mockComplexTypes_Any{Call: x.On("Any", arg0_)}
 }
 
@@ -413,7 +413,7 @@ func (x *MockComplexTypes) On_Channels_Any() *mockComplexTypes_Channels {
 	return &mockComplexTypes_Channels{Call: x.On("Channels", mock.Anything, mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_Channels_Interface(i_ interface{}, o_ interface{}) *mockComplexTypes_Channels {
+func (x *MockComplexTypes) On_Channels_Interface(i_ any, o_ any) *mockComplexTypes_Channels {
 	return &mockComplexTypes_Channels{Call: x.On("Channels", i_, o_)}
 }
 
@@ -469,7 +469,7 @@ func (x *MockComplexTypes) On_Variadic_Any() *mockComplexTypes_Variadic {
 	return &mockComplexTypes_Variadic{Call: x.On("Variadic", mock.Anything, mock.Anything)}
 }
 
-func (x *MockComplexTypes) On_Variadic_Interface(i_ interface{}, i2_ interface{}) *mockComplexTypes_Variadic {
+func (x *MockComplexTypes) On_Variadic_Interface(i_ any, i2_ any) *mockComplexTypes_Variadic {
 	return &mockComplexTypes_Variadic{Call: x.On("Variadic", i_, i2_)}
 }
 

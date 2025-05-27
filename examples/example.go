@@ -2,9 +2,11 @@ package examples
 
 import (
 	"context"
+	"iter"
 
 	alias "github.com/tim-oster/go-mock/examples/some-pkg"
 	different_name "github.com/tim-oster/go-mock/examples/some-pkg"
+	"golang.org/x/exp/constraints"
 )
 
 //go:generate go-mock ComplexTypes
@@ -43,5 +45,8 @@ type ImportEdgeCases interface {
 }
 
 //go:generate go-mock Generics
-type Generics[T any] interface {
+type Generics[T, R any, O constraints.Ordered, E ~[]R] interface {
+	WithGeneric(typed T) (T, error)
+	NestedGeneric(iter.Seq[T])
+	WithoutGeneric(i int)
 }
