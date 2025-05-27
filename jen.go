@@ -30,7 +30,8 @@ func (rename ParamRenamer) rename(index int, p *Param) {
 
 type Param struct {
 	Name       string
-	Type       jen.Code
+	Type       ast.Expr
+	TypeJen    jen.Code
 	IsVariadic bool
 }
 
@@ -42,7 +43,7 @@ func (params Params) ToSignatureParams(renamers ...ParamRenamer) []jen.Code {
 		for _, r := range renamers {
 			r.rename(i, &param)
 		}
-		out = append(out, jen.Id(param.Name).Add(param.Type))
+		out = append(out, jen.Id(param.Name).Add(param.TypeJen))
 	}
 	return out
 }
@@ -86,11 +87,11 @@ func paramsFromFieldList(fl *ast.FieldList, imports importMap) Params {
 		typ := exprToJen(l.Type, imports)
 		_, isVariadic := l.Type.(*ast.Ellipsis)
 		if len(l.Names) == 0 {
-			codes = append(codes, Param{Type: typ, IsVariadic: isVariadic})
+			codes = append(codes, Param{Type: l.Type, TypeJen: typ, IsVariadic: isVariadic})
 			continue
 		}
 		for _, n := range l.Names {
-			codes = append(codes, Param{Name: n.Name, Type: typ, IsVariadic: isVariadic})
+			codes = append(codes, Param{Name: n.Name, Type: l.Type, TypeJen: typ, IsVariadic: isVariadic})
 		}
 	}
 	return codes

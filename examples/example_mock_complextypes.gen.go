@@ -112,6 +112,84 @@ func (x *MockComplexTypes) Assert_RemoveCtx_NotCalled(t *testing.T) bool {
 	return x.AssertNotCalled(t, "RemoveCtx")
 }
 
+func (x *MockComplexTypes) RemoveCtxByType(context_ context.Context) {
+	args := x.Called()
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockComplexTypes_RemoveCtxByType_ReturnFunc); ok {
+			t(context_)
+		}
+	}
+}
+
+type mockComplexTypes_RemoveCtxByType struct {
+	*mock.Call
+}
+
+type mockComplexTypes_RemoveCtxByType_ReturnFunc func(context context.Context)
+
+func (c *mockComplexTypes_RemoveCtxByType) Return() *mock.Call {
+	return c.Call.Return()
+}
+
+func (c *mockComplexTypes_RemoveCtxByType) ReturnFn(fn mockComplexTypes_RemoveCtxByType_ReturnFunc) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockComplexTypes) On_RemoveCtxByType() *mockComplexTypes_RemoveCtxByType {
+	return &mockComplexTypes_RemoveCtxByType{Call: x.On("RemoveCtxByType")}
+}
+
+func (x *MockComplexTypes) Assert_RemoveCtxByType_Called(t *testing.T) bool {
+	return x.AssertCalled(t, "RemoveCtxByType")
+}
+
+func (x *MockComplexTypes) Assert_RemoveCtxByType_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "RemoveCtxByType", expectedCalls)
+}
+
+func (x *MockComplexTypes) Assert_RemoveCtxByType_NotCalled(t *testing.T) bool {
+	return x.AssertNotCalled(t, "RemoveCtxByType")
+}
+
+func (x *MockComplexTypes) RemoveCtxAlias(context_ context.Context) {
+	args := x.Called()
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockComplexTypes_RemoveCtxAlias_ReturnFunc); ok {
+			t(context_)
+		}
+	}
+}
+
+type mockComplexTypes_RemoveCtxAlias struct {
+	*mock.Call
+}
+
+type mockComplexTypes_RemoveCtxAlias_ReturnFunc func(context context.Context)
+
+func (c *mockComplexTypes_RemoveCtxAlias) Return() *mock.Call {
+	return c.Call.Return()
+}
+
+func (c *mockComplexTypes_RemoveCtxAlias) ReturnFn(fn mockComplexTypes_RemoveCtxAlias_ReturnFunc) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockComplexTypes) On_RemoveCtxAlias() *mockComplexTypes_RemoveCtxAlias {
+	return &mockComplexTypes_RemoveCtxAlias{Call: x.On("RemoveCtxAlias")}
+}
+
+func (x *MockComplexTypes) Assert_RemoveCtxAlias_Called(t *testing.T) bool {
+	return x.AssertCalled(t, "RemoveCtxAlias")
+}
+
+func (x *MockComplexTypes) Assert_RemoveCtxAlias_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "RemoveCtxAlias", expectedCalls)
+}
+
+func (x *MockComplexTypes) Assert_RemoveCtxAlias_NotCalled(t *testing.T) bool {
+	return x.AssertNotCalled(t, "RemoveCtxAlias")
+}
+
 func (x *MockComplexTypes) NamedReturns() (i int, e error) {
 	args := x.Called()
 	if len(args) > 0 {
@@ -205,6 +283,53 @@ func (x *MockComplexTypes) Assert_UnnamedParams_NumberOfCalls(t *testing.T, expe
 
 func (x *MockComplexTypes) Assert_UnnamedParams_NotCalled(t *testing.T, arg0_ int) bool {
 	return x.AssertNotCalled(t, "UnnamedParams", arg0_)
+}
+
+func (x *MockComplexTypes) SharedTypeParams(a_ string, b_ string, c_ int) {
+	args := x.Called(a_, b_, c_)
+	if len(args) > 0 {
+		if t, ok := args.Get(0).(mockComplexTypes_SharedTypeParams_ReturnFunc); ok {
+			t(a_, b_, c_)
+		}
+	}
+}
+
+type mockComplexTypes_SharedTypeParams struct {
+	*mock.Call
+}
+
+type mockComplexTypes_SharedTypeParams_ReturnFunc func(a string, b string, c int)
+
+func (c *mockComplexTypes_SharedTypeParams) Return() *mock.Call {
+	return c.Call.Return()
+}
+
+func (c *mockComplexTypes_SharedTypeParams) ReturnFn(fn mockComplexTypes_SharedTypeParams_ReturnFunc) *mock.Call {
+	return c.Call.Return(fn)
+}
+
+func (x *MockComplexTypes) On_SharedTypeParams(a_ string, b_ string, c_ int) *mockComplexTypes_SharedTypeParams {
+	return &mockComplexTypes_SharedTypeParams{Call: x.On("SharedTypeParams", a_, b_, c_)}
+}
+
+func (x *MockComplexTypes) On_SharedTypeParams_Any() *mockComplexTypes_SharedTypeParams {
+	return &mockComplexTypes_SharedTypeParams{Call: x.On("SharedTypeParams", mock.Anything, mock.Anything, mock.Anything)}
+}
+
+func (x *MockComplexTypes) On_SharedTypeParams_Interface(a_ any, b_ any, c_ any) *mockComplexTypes_SharedTypeParams {
+	return &mockComplexTypes_SharedTypeParams{Call: x.On("SharedTypeParams", a_, b_, c_)}
+}
+
+func (x *MockComplexTypes) Assert_SharedTypeParams_Called(t *testing.T, a_ string, b_ string, c_ int) bool {
+	return x.AssertCalled(t, "SharedTypeParams", a_, b_, c_)
+}
+
+func (x *MockComplexTypes) Assert_SharedTypeParams_NumberOfCalls(t *testing.T, expectedCalls int) bool {
+	return x.AssertNumberOfCalls(t, "SharedTypeParams", expectedCalls)
+}
+
+func (x *MockComplexTypes) Assert_SharedTypeParams_NotCalled(t *testing.T, a_ string, b_ string, c_ int) bool {
+	return x.AssertNotCalled(t, "SharedTypeParams", a_, b_, c_)
 }
 
 func (x *MockComplexTypes) AnonymousInterface(i_ interface {

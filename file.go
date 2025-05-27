@@ -8,8 +8,6 @@ import (
 	"strings"
 	"unicode"
 
-	"slices"
-
 	"github.com/dave/jennifer/jen"
 )
 
@@ -162,18 +160,15 @@ func (iface *Interface) generate(g *jen.File, imports importMap) {
 
 func (iface *Interface) generateForMethod(g *jen.File, structName, fnName string, fn *ast.FuncType, imports importMap) {
 	mockedInput := paramsFromFieldList(fn.Params, imports)
-	for i, p := range mockedInput {
-		isCtx := p.Name == "ctx"
-		if !isCtx {
-			if sel, ok := fn.Params.List[i].Type.(*ast.SelectorExpr); ok {
-				packageName := sel.X.(*ast.Ident).Name
-				if packageName == "context" && sel.Sel != nil && sel.Sel.Name == "Context" {
-					isCtx = true
-				}
+
+	if !*keepCtx && len(mockedInput) != 0 {
+		p0 := mockedInput[0]
+		if sel, ok := p0.Type.(*ast.SelectorExpr); ok {
+			packageName := sel.X.(*ast.Ident).Name
+			isContextPkg := packageName == "context" || imports[packageName] == "context"
+			if isContextPkg && sel.Sel != nil && sel.Sel.Name == "Context" {
+				mockedInput = mockedInput[1:]
 			}
-		}
-		if i == 0 && isCtx && !*keepCtx {
-			mockedInput = slices.Delete(mockedInput, i, i+1)
 		}
 	}
 	m := Method{
@@ -236,12 +231,12 @@ func (m *Method) generateMockImplementation(g *jen.File) {
 					id := jen.Id(fmt.Sprintf("r%d", i))
 					returnIds = append(returnIds, id)
 
-					g.Var().Add(id).Add(result.Type)
+					g.Var().Add(id).Add(result.TypeJen)
 					g.If(
 						jen.Id("v").Op(":=").Id("args").Dot("Get").Call(jen.Lit(i)),
 						jen.Id("v").Op("!=").Nil(),
 					).BlockFunc(func(g *jen.Group) {
-						g.Add(id).Op("=").Id("v").Op(".").Params(result.Type)
+						g.Add(id).Op("=").Id("v").Op(".").Params(result.TypeJen)
 					})
 				}
 				g.Return(returnIds...)
@@ -340,7 +335,7 @@ func (m *Method) generateOnMethods(g *jen.File) {
 	// mockStruct.On_xxx_Interface
 	var interfacedParams Params
 	for _, param := range m.mockedInput {
-		param.Type = jen.Any()
+		param.TypeJen = jen.Any()
 		interfacedParams = append(interfacedParams, param)
 	}
 	if len(interfacedParams) > 0 {

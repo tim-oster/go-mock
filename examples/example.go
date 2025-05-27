@@ -4,6 +4,7 @@ import (
 	"context"
 	"iter"
 
+	context_alias "context"
 	alias "github.com/tim-oster/go-mock/examples/some-pkg"
 	different_name "github.com/tim-oster/go-mock/examples/some-pkg"
 	"golang.org/x/exp/constraints"
@@ -13,8 +14,11 @@ import (
 type ComplexTypes interface {
 	Normal(b bool) (int, error)
 	RemoveCtx(ctx context.Context)
+	RemoveCtxByType(context context.Context)
+	RemoveCtxAlias(context context_alias.Context)
 	NamedReturns() (i int, e error)
 	UnnamedParams(context.Context, int)
+	SharedTypeParams(a, b string, c int)
 	AnonymousInterface(i interface {
 		TestMethod() (bool, error)
 	})
