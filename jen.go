@@ -15,6 +15,9 @@ var (
 		return name + "_"
 	})
 	RenameUnnamed = ParamRenamer(func(index int, name string) string {
+		if name != "" {
+			return name
+		}
 		return fmt.Sprintf("arg%d", index)
 	})
 )
@@ -33,19 +36,23 @@ type Param struct {
 
 type Params []Param
 
-func (params Params) ToSignatureParams(renamer ParamRenamer) []jen.Code {
+func (params Params) ToSignatureParams(renamers ...ParamRenamer) []jen.Code {
 	out := make([]jen.Code, 0, len(params))
 	for i, param := range params {
-		renamer.rename(i, &param)
+		for _, r := range renamers {
+			r.rename(i, &param)
+		}
 		out = append(out, jen.Id(param.Name).Add(param.Type))
 	}
 	return out
 }
 
-func (params Params) ToCallParams(renamer ParamRenamer, useVariadic bool) []jen.Code {
+func (params Params) ToCallParams(useVariadic bool, renamers ...ParamRenamer) []jen.Code {
 	out := make([]jen.Code, 0, len(params))
 	for i, param := range params {
-		renamer.rename(i, &param)
+		for _, r := range renamers {
+			r.rename(i, &param)
+		}
 		t := jen.Id(param.Name)
 		if param.IsVariadic && useVariadic {
 			t = t.Add(jen.Op("..."))
@@ -53,6 +60,21 @@ func (params Params) ToCallParams(renamer ParamRenamer, useVariadic bool) []jen.
 		out = append(out, t)
 	}
 	return out
+}
+
+func (params Params) ToTypeIds() []jen.Code {
+	out := make([]jen.Code, 0, len(params))
+	for _, param := range params {
+		out = append(out, jen.Id(param.Name))
+	}
+	return out
+}
+
+func OptionalTypes(codes []jen.Code) jen.Code {
+	if len(codes) != 0 {
+		return jen.Types(codes...)
+	}
+	return nil
 }
 
 func paramsFromFieldList(fl *ast.FieldList, imports importMap) Params {
@@ -114,8 +136,8 @@ func exprToJen(e ast.Expr, imports importMap) jen.Code {
 
 	case *ast.FuncType:
 		return jen.Func().
-			Params(paramsFromFieldList(e.Params, imports).ToSignatureParams(nil)...).
-			Params(paramsFromFieldList(e.Results, imports).ToSignatureParams(nil)...)
+			Params(paramsFromFieldList(e.Params, imports).ToSignatureParams()...).
+			Params(paramsFromFieldList(e.Results, imports).ToSignatureParams()...)
 
 	case *ast.InterfaceType:
 		return jen.InterfaceFunc(func(g *jen.Group) {
@@ -125,8 +147,8 @@ func exprToJen(e ast.Expr, imports importMap) jen.Code {
 				}
 				fn := m.Type.(*ast.FuncType)
 				g.Id(m.Names[0].Name).
-					Params(paramsFromFieldList(fn.Params, imports).ToSignatureParams(nil)...).
-					Params(paramsFromFieldList(fn.Results, imports).ToSignatureParams(nil)...)
+					Params(paramsFromFieldList(fn.Params, imports).ToSignatureParams()...).
+					Params(paramsFromFieldList(fn.Results, imports).ToSignatureParams()...)
 			}
 		})
 
@@ -155,6 +177,12 @@ func exprToJen(e ast.Expr, imports importMap) jen.Code {
 			x = r
 		}
 		return jen.Qual(x, e.Sel.Name)
+
+	case *ast.UnaryExpr:
+		return jen.Op(e.Op.String()).Add(exprToJen(e.X, imports))
+
+	case *ast.IndexExpr:
+		return jen.Add(exprToJen(e.X, imports)).Index(exprToJen(e.Index, imports))
 
 	default:
 		panic(fmt.Errorf("unsupported ast.Expr: %T", e))

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"unicode"
 
+	"slices"
+
 	"github.com/dave/jennifer/jen"
 )
 
@@ -143,11 +145,12 @@ func (iface *Interface) generate(g *jen.File, imports importMap) {
 		Params(jen.Op("*").Id(mockName)).Params(jen.Nil())
 
 	// mock struct that implements mock.Mock
-	g.Type().Id(mockName).StructFunc(func(g *jen.Group) {
+	genericTypes := paramsFromFieldList(iface.spec.TypeParams, imports)
+	g.Type().Id(mockName).Add(OptionalTypes(genericTypes.ToSignatureParams())).StructFunc(func(g *jen.Group) {
 		g.Qual(mockPkg, "Mock")
 	})
 
-	for i := 0; i < iface.typ.Methods.NumFields(); i++ {
+	for i := range iface.typ.Methods.NumFields() {
 		m := iface.typ.Methods.List[i]
 		fn, ok := m.Type.(*ast.FuncType)
 		if !ok {
@@ -160,16 +163,26 @@ func (iface *Interface) generate(g *jen.File, imports importMap) {
 func (iface *Interface) generateForMethod(g *jen.File, structName, fnName string, fn *ast.FuncType, imports importMap) {
 	mockedInput := paramsFromFieldList(fn.Params, imports)
 	for i, p := range mockedInput {
-		if i == 0 && p.Name == "ctx" && !*keepCtx {
-			mockedInput = append(mockedInput[:i], mockedInput[i+1:]...)
+		isCtx := p.Name == "ctx"
+		if !isCtx {
+			if sel, ok := fn.Params.List[i].Type.(*ast.SelectorExpr); ok {
+				packageName := sel.X.(*ast.Ident).Name
+				if packageName == "context" && sel.Sel != nil && sel.Sel.Name == "Context" {
+					isCtx = true
+				}
+			}
+		}
+		if i == 0 && isCtx && !*keepCtx {
+			mockedInput = slices.Delete(mockedInput, i, i+1)
 		}
 	}
 	m := Method{
-		structName:  structName,
-		name:        fnName,
-		params:      paramsFromFieldList(fn.Params, imports),
-		results:     paramsFromFieldList(fn.Results, imports),
-		mockedInput: mockedInput,
+		structName:   structName,
+		name:         fnName,
+		genericTypes: paramsFromFieldList(iface.spec.TypeParams, imports),
+		params:       paramsFromFieldList(fn.Params, imports),
+		results:      paramsFromFieldList(fn.Results, imports),
+		mockedInput:  mockedInput,
 	}
 
 	m.generateMockImplementation(g)
@@ -183,29 +196,32 @@ func (iface *Interface) generateForMethod(g *jen.File, structName, fnName string
 }
 
 type Method struct {
-	structName  string
-	name        string
-	params      Params
-	results     Params
-	mockedInput Params
+	structName   string
+	name         string
+	genericTypes Params
+	params       Params
+	results      Params
+	mockedInput  Params
 }
 
 func (m *Method) generateMockImplementation(g *jen.File) {
+	optionalGenerics := OptionalTypes(m.genericTypes.ToTypeIds())
+
 	g.Func().
-		Params(jen.Add(mockReceiver).Op("*").Id(m.structName)).
+		Params(jen.Add(mockReceiver).Op("*").Id(m.structName).Add(optionalGenerics)).
 		Id(m.name).
-		Params(m.params.ToSignatureParams(RenamePostfix)...).
-		Params(m.results.ToSignatureParams(nil)...).
+		Params(m.params.ToSignatureParams(RenameUnnamed, RenamePostfix)...).
+		Params(m.results.ToSignatureParams()...).
 		BlockFunc(func(g *jen.Group) {
-			g.Id("args").Op(":=").Add(mockReceiver).Dot("Called").Call(m.mockedInput.ToCallParams(RenamePostfix, false)...)
+			g.Id("args").Op(":=").Add(mockReceiver).Dot("Called").Call(m.mockedInput.ToCallParams(false, RenameUnnamed, RenamePostfix)...)
 
 			g.If(jen.Len(jen.Id("args")).Op(">").Lit(0)).BlockFunc(func(g *jen.Group) {
 				g.If(
 					jen.List(jen.Id("t"), jen.Id("ok")).Op(":=").
-						Id("args").Dot("Get").Call(jen.Lit(0)).Op(".").Params(jen.Id(m.returnFuncName())),
+						Id("args").Dot("Get").Call(jen.Lit(0)).Op(".").Params(jen.Id(m.returnFuncName()).Add(optionalGenerics)),
 					jen.Id("ok"),
 				).BlockFunc(func(g *jen.Group) {
-					invocation := jen.Id("t").Params(m.params.ToCallParams(RenamePostfix, true)...)
+					invocation := jen.Id("t").Params(m.params.ToCallParams(true, RenameUnnamed, RenamePostfix)...)
 					if len(m.results) > 0 {
 						g.Return(invocation)
 					} else {
@@ -245,20 +261,22 @@ func (m *Method) returnFuncName() string {
 
 func (m *Method) generateCallStruct(g *jen.File) {
 	mockCallStruct := m.callStructName()
+	optionalGenerics := OptionalTypes(m.genericTypes.ToTypeIds())
 
 	// actual call struct
-	g.Type().Id(mockCallStruct).Struct(
+	g.Type().Id(mockCallStruct).Add(OptionalTypes(m.genericTypes.ToSignatureParams())).Struct(
 		jen.Op("*").Qual(mockPkg, "Call"),
 	).Line()
 
 	// generate return function type for mocking custom logic
-	g.Type().Id(m.returnFuncName()).Func().Params(m.params.ToSignatureParams(nil)...).
-		Params(m.results.ToSignatureParams(nil)...).
+	g.Type().Id(m.returnFuncName()).Add(OptionalTypes(m.genericTypes.ToSignatureParams())).
+		Func().Params(m.params.ToSignatureParams()...).
+		Params(m.results.ToSignatureParams()...).
 		Line()
 
 	// mockStruct.Return
 	g.Func().
-		Params(jen.Id("c").Op("*").Id(mockCallStruct)).
+		Params(jen.Id("c").Op("*").Id(mockCallStruct).Add(optionalGenerics)).
 		Id("Return").
 		Params(m.results.ToSignatureParams(RenameUnnamed)...).
 		Params(jen.Op("*").Qual(mockPkg, "Call")).
@@ -274,9 +292,9 @@ func (m *Method) generateCallStruct(g *jen.File) {
 
 	// mockStruct.ReturnFn
 	g.Func().
-		Params(jen.Id("c").Op("*").Id(mockCallStruct)).
+		Params(jen.Id("c").Op("*").Id(mockCallStruct).Add(optionalGenerics)).
 		Id("ReturnFn").
-		Params(jen.Id("fn").Id(m.returnFuncName())).
+		Params(jen.Id("fn").Id(m.returnFuncName()).Add(optionalGenerics)).
 		Params(jen.Op("*").Qual(mockPkg, "Call")).
 		BlockFunc(func(g *jen.Group) {
 			g.Return(jen.Id("c").Dot("Call").Dot("Return").Call(jen.Id("fn")))
@@ -285,16 +303,18 @@ func (m *Method) generateCallStruct(g *jen.File) {
 }
 
 func (m *Method) generateOnMethods(g *jen.File) {
+	optionalGenerics := OptionalTypes(m.genericTypes.ToTypeIds())
+
 	genFunc := func(name string, sigParams []jen.Code, callParams []jen.Code) {
 		callParams = append([]jen.Code{jen.Lit(m.name)}, callParams...)
 
 		g.Func().
-			Params(jen.Add(mockReceiver).Op("*").Id(m.structName)).
+			Params(jen.Add(mockReceiver).Op("*").Id(m.structName).Add(optionalGenerics)).
 			Id(name).
 			Params(sigParams...).
-			Params(jen.Op("*").Id(m.callStructName())).
+			Params(jen.Op("*").Id(m.callStructName()).Add(optionalGenerics)).
 			BlockFunc(func(g *jen.Group) {
-				g.Return(jen.Op("&").Id(m.callStructName()).Values(jen.Dict{
+				g.Return(jen.Op("&").Id(m.callStructName()).Add(optionalGenerics).Values(jen.Dict{
 					jen.Id("Call"): jen.Add(mockReceiver).Dot("On").Call(callParams...),
 				}))
 			}).
@@ -304,8 +324,8 @@ func (m *Method) generateOnMethods(g *jen.File) {
 	// mockStruct.On_xxx
 	genFunc(
 		"On_"+m.name,
-		m.mockedInput.ToSignatureParams(RenamePostfix),
-		m.mockedInput.ToCallParams(RenamePostfix, false),
+		m.mockedInput.ToSignatureParams(RenameUnnamed, RenamePostfix),
+		m.mockedInput.ToCallParams(false, RenameUnnamed, RenamePostfix),
 	)
 
 	// mockStruct.On_xxx_Any
@@ -320,25 +340,27 @@ func (m *Method) generateOnMethods(g *jen.File) {
 	// mockStruct.On_xxx_Interface
 	var interfacedParams Params
 	for _, param := range m.mockedInput {
-		param.Type = jen.Interface()
+		param.Type = jen.Any()
 		interfacedParams = append(interfacedParams, param)
 	}
 	if len(interfacedParams) > 0 {
 		genFunc(
 			"On_"+m.name+"_Interface",
-			interfacedParams.ToSignatureParams(RenamePostfix),
-			interfacedParams.ToCallParams(RenamePostfix, false),
+			interfacedParams.ToSignatureParams(RenameUnnamed, RenamePostfix),
+			interfacedParams.ToCallParams(false, RenameUnnamed, RenamePostfix),
 		)
 	}
 }
 
 func (m *Method) generateAssertMethods(g *jen.File) {
+	optionalGenerics := OptionalTypes(m.genericTypes.ToTypeIds())
+
 	genFunc := func(name, implName string, sigParams []jen.Code, callParams []jen.Code) {
 		sigParams = append([]jen.Code{jen.Id("t").Op("*").Qual(testingPkg, "T")}, sigParams...)
 		callParams = append([]jen.Code{jen.Id("t"), jen.Lit(m.name)}, callParams...)
 
 		g.Func().
-			Params(jen.Add(mockReceiver).Op("*").Id(m.structName)).
+			Params(jen.Add(mockReceiver).Op("*").Id(m.structName).Add(optionalGenerics)).
 			Id(name).
 			Params(sigParams...).
 			Params(jen.Bool()).
@@ -352,8 +374,8 @@ func (m *Method) generateAssertMethods(g *jen.File) {
 	genFunc(
 		"Assert_"+m.name+"_Called",
 		"AssertCalled",
-		m.mockedInput.ToSignatureParams(RenamePostfix),
-		m.mockedInput.ToCallParams(RenamePostfix, false),
+		m.mockedInput.ToSignatureParams(RenameUnnamed, RenamePostfix),
+		m.mockedInput.ToCallParams(false, RenameUnnamed, RenamePostfix),
 	)
 
 	// Assert_xxx_NumberOfCalls function
@@ -368,7 +390,7 @@ func (m *Method) generateAssertMethods(g *jen.File) {
 	genFunc(
 		"Assert_"+m.name+"_NotCalled",
 		"AssertNotCalled",
-		m.mockedInput.ToSignatureParams(RenamePostfix),
-		m.mockedInput.ToCallParams(RenamePostfix, false),
+		m.mockedInput.ToSignatureParams(RenameUnnamed, RenamePostfix),
+		m.mockedInput.ToCallParams(false, RenameUnnamed, RenamePostfix),
 	)
 }

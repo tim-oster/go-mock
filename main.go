@@ -41,8 +41,7 @@ func main() {
 	}
 
 	targetInterfaces := map[string]string{}
-	patterns := strings.Split(patternArg, ",")
-	for _, p := range patterns {
+	for p := range strings.SplitSeq(patternArg, ",") {
 		parts := strings.SplitN(p, ":", 2)
 		var rename string
 		if len(parts) == 2 {
