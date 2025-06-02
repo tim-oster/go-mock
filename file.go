@@ -138,9 +138,10 @@ func (iface *Interface) generate(g *jen.File, imports importMap) {
 	}
 	mockName += iface.name
 
-	// compile time interface implementation assert
-	g.Var().Id("_").Id(iface.spec.Name.Name).Op("=").
-		Params(jen.Op("*").Id(mockName)).Params(jen.Nil())
+	// Compile time interface implementation assert. Do not generate for generics, as constraints cannot inferred reliably.
+	if iface.spec.TypeParams == nil {
+		g.Var().Id("_").Id(iface.spec.Name.Name).Op("=").Params(jen.Op("*").Id(mockName)).Params(jen.Nil())
+	}
 
 	// mock struct that implements mock.Mock
 	genericTypes := paramsFromFieldList(iface.spec.TypeParams, imports)

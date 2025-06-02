@@ -12,8 +12,6 @@ import (
 	"testing"
 )
 
-var _ Generics = (*MockGenerics)(nil)
-
 type MockGenerics[T any, R any, O constraints.Ordered, E ~[]R] struct {
 	mock.Mock
 }
